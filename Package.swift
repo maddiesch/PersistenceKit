@@ -5,6 +5,7 @@ import PackageDescription
 
 let package = Package(
     name: "PersistenceKit",
+    defaultLocalization: "en",
     platforms: [
         .macOS(.v11),
         .iOS(.v14)

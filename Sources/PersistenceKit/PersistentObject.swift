@@ -26,15 +26,15 @@ open class PersistentObject: NSManagedObject, Identifiable {
     }
     
     public var localID: UUID! {
-        return self.value(forKey: PersistentKeys.localID.rawValue) as? UUID
+        return self.value(forKey: PersistentKeys.localID.rawValue) as? UUID ?? UUID()
     }
     
     public var localCreatedAt: Date! {
-        return self.value(forKey: PersistentKeys.localCreatedAt.rawValue) as? Date
+        return self.value(forKey: PersistentKeys.localCreatedAt.rawValue) as? Date ?? Date()
     }
     
     public var localUpdatedAt: Date! {
-        return self.value(forKey: PersistentKeys.localUpdatedAt.rawValue) as? Date
+        return self.value(forKey: PersistentKeys.localUpdatedAt.rawValue) as? Date ?? Date()
     }
         
     open override func awakeFromInsert() {

@@ -9,6 +9,16 @@ import Foundation
 import CoreData
 import Combine
 
+public struct NilContextError : Error, CustomNSError {
+    public let message = NSLocalizedString("PersistenceKit.Errors.NilContextDescription", bundle: Bundle.module, comment: "Localized description used when a nil context is returned")
+    
+    public var errorUserInfo: [String : Any] {
+        return [
+            NSLocalizedDescriptionKey: self.message
+        ]
+    }
+}
+
 extension NSManagedObjectContext {
     public typealias ManagedObjectContextChangedObjects = (inserted: Array<NSManagedObjectID>, updated: Array<NSManagedObjectID>, delted: Array<NSManagedObjectID>)
     
@@ -47,5 +57,23 @@ extension NSManagedObjectContext {
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
         
         return context
+    }
+    
+    public func perform<ResultType>(task: @escaping (NSManagedObjectContext) throws -> ResultType) -> Future<ResultType, Error> {
+        return Future { finished in
+            self.perform { [weak self] in
+                do {
+                    guard let sSelf = self else {
+                        throw NilContextError()
+                    }
+                    
+                    let result = try task(sSelf)
+                    
+                    finished(.success(result))
+                } catch {
+                    finished(.failure(error))
+                }
+            }
+        }
     }
 }

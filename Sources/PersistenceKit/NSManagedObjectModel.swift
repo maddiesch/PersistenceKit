@@ -114,6 +114,31 @@ extension NSEntityDescription {
         
         return (source, dest)
     }
+    
+    @discardableResult
+    public func hasAndBelongsToMany(_ destination: NSEntityDescription, property: String, inverse: String, deleteRule: NSDeleteRule = .nullifyDeleteRule, inverseDeleteRule: NSDeleteRule = .nullifyDeleteRule) -> (NSRelationshipDescription, NSRelationshipDescription) {
+        let source = NSRelationshipDescription()
+        source.destinationEntity = destination
+        source.name = property
+        source.deleteRule = deleteRule
+        source.maxCount = 0
+        source.minCount = 0
+        
+        let dest = NSRelationshipDescription()
+        dest.destinationEntity = self
+        dest.name = inverse
+        dest.deleteRule = inverseDeleteRule
+        dest.minCount = 0
+        dest.maxCount = 0
+        
+        source.inverseRelationship = dest
+        dest.inverseRelationship = source
+        
+        self.properties.append(source)
+        destination.properties.append(dest)
+        
+        return (source, dest)
+    }
 }
 
 extension NSAttributeDescription {

@@ -1,0 +1,9 @@
+/*
+  Localizable.strings
+  PersistenceKit
+
+  Created by Maddie Schipper on 3/14/21.
+  
+*/
+
+"PersistenceKit.Errors.NilContextDescription" = "";

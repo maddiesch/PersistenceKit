@@ -28,8 +28,12 @@ public final class PersistentStore {
         return self.viewContext.createChildContext(concurrencyType: .mainQueueConcurrencyType)
     }
     
-    public init(name: String, managedObjectModel model: NSManagedObjectModel) {
-        self.container = NSPersistentContainer(name: name, managedObjectModel: model)
+    public convenience init(name: String, managedObjectModel model: NSManagedObjectModel) {
+        self.init(containerType: NSPersistentContainer.self, name: name, managedObjectModel: model)
+    }
+    
+    public required init<Container : NSPersistentContainer>(containerType: Container.Type, name: String, managedObjectModel model: NSManagedObjectModel) {
+        self.container = containerType.init(name: name, managedObjectModel: model)
     }
     
     public func prepare(withPersistentStoreDescriptions descriptions: Array<NSPersistentStoreDescription>) {
