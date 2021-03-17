@@ -9,7 +9,7 @@ import Foundation
 import Combine
 
 extension Set where Element == AnyCancellable {
-    public mutating func cancelAll() {
+    internal mutating func cancelAll() {
         for canceler in self {
             canceler.cancel()
         }

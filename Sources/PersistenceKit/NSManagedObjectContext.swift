@@ -59,6 +59,25 @@ extension NSManagedObjectContext {
         return context
     }
     
+    public func performWithErrorHandler(task: @escaping (NSManagedObjectContext) throws -> Void) -> Future<Error?, Never> {
+        return Future { finished in
+            self.perform { [weak self] in
+                guard let sSelf = self else {
+                    finished(.success(NilContextError()))
+                    return
+                }
+                
+                do {
+                    try task(sSelf)
+                    
+                    finished(.success(nil))
+                } catch {
+                    finished(.success(error))
+                }
+            }
+        }
+    }
+    
     public func perform<ResultType>(task: @escaping (NSManagedObjectContext) throws -> ResultType) -> Future<ResultType, Error> {
         return Future { finished in
             self.perform { [weak self] in
@@ -75,5 +94,20 @@ extension NSManagedObjectContext {
                 }
             }
         }
+    }
+    
+    public var contextChangedPublisher: AnyPublisher<NSManagedObjectContext, Never> {
+        return NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: self).filter { notification in
+            guard let context = notification.object as? NSManagedObjectContext else {
+                return false
+            }
+            return context.hasChanges
+        }.compactMap {
+            return $0.object as? NSManagedObjectContext
+        }.eraseToAnyPublisher()
+    }
+    
+    public func createChangePublisher<S : Scheduler>(timeInterval: S.SchedulerTimeType.Stride, scheduler: S) -> AnyPublisher<NSManagedObjectContext, Never> {
+        return self.contextChangedPublisher.throttle(for: timeInterval, scheduler: scheduler, latest: true).eraseToAnyPublisher()
     }
 }

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import Combine
 import CoreData
 
 public final class PersistentStore {
@@ -71,6 +72,11 @@ public final class PersistentStore {
         }
         
         self.viewContext.automaticallyMergesChangesFromParent = true
+        self.viewContext.name = "Primary View Context";
+    }
+    
+    deinit {
+        self.autoSaveObservers.cancelAll()
     }
     
     public func saveViewContext() throws {
@@ -81,6 +87,30 @@ public final class PersistentStore {
     
     public func managedObjectID(from uri: URL) -> NSManagedObjectID? {
         return self.container.persistentStoreCoordinator.managedObjectID(forURIRepresentation: uri)
+    }
+    
+    private var autoSaveObservers = Set<AnyCancellable>()
+    
+    @discardableResult
+    public func beginContextAutoSave(for context: NSManagedObjectContext, timeInterval: RunLoop.SchedulerTimeType.Stride) -> AnyPublisher<Error, Never> {
+        let publisher = PassthroughSubject<Error, Never>()
+        let contextName = context.name ?? "<anonymous>"
+        
+        context.createChangePublisher(timeInterval: timeInterval, scheduler: RunLoop.main)
+            .flatMap { context in
+                return context.performWithErrorHandler { ctx in
+                    try ctx.save()
+                }
+            }
+            .sink { error in
+                if let error = error {
+                    Log.debug("AutoSaved ManagedObjectContext (\(contextName)) failed with error - \(error.localizedDescription)")
+                } else {
+                    Log.debug("AutoSaved ManagedObjectContext - \(contextName)")
+                }
+            }.store(in: &autoSaveObservers)
+        
+        return publisher.eraseToAnyPublisher()
     }
 }
 

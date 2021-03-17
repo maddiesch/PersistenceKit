@@ -10,9 +10,7 @@ import CoreData
 import Combine
 
 open class PersistentObjectViewModel<Object : PersistentObject> : ObservableObject {
-    public var managedObjectContext: NSManagedObjectContext! {
-        return self.object.managedObjectContext
-    }
+    public let managedObjectContext: NSManagedObjectContext!
     
     private var objectObserverCanceler: AnyCancellable?
     
@@ -24,6 +22,7 @@ open class PersistentObjectViewModel<Object : PersistentObject> : ObservableObje
     
     public init(object: Object) {
         self.object = object
+        self.managedObjectContext = object.managedObjectContext
         
         self.updateObjectChangeObserver()
     }

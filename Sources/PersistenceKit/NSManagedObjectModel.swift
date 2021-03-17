@@ -139,6 +139,13 @@ extension NSEntityDescription {
         
         return (source, dest)
     }
+    
+    @discardableResult
+    public func resetUniquenessConstraints() -> NSEntityDescription {
+        self.uniquenessConstraints = []
+        
+        return self
+    }
 }
 
 extension NSAttributeDescription {

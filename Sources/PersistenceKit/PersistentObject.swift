@@ -11,14 +11,16 @@ import CoreData
 public typealias PersistentEntityDescription = NSEntityDescription
 
 open class PersistentObject: NSManagedObject, Identifiable {
+    private static let defaultUUID = UUID(uuidString: "05730E76-06D3-4AB9-9E93-BA6B74C9C7F0")!
+    
     public enum PersistentKeys : String {
         case localID = "localID"
         case localCreatedAt = "localCreatedAt"
         case localUpdatedAt = "localUpdatedAt"
     }
     
-    public var id: NSManagedObjectID {
-        return self.objectID
+    public var id: String {
+        return self.localID.uuidString
     }
     
     public class var entityName: String {
@@ -72,9 +74,9 @@ extension PersistentObject {
         entity.name = self.entityName
         entity.managedObjectClassName = NSStringFromClass(Self.self)
         
-        entity.addAttribute(PersistentKeys.localID.rawValue, .UUIDAttributeType).require()
-        entity.addAttribute(PersistentKeys.localCreatedAt.rawValue, .dateAttributeType).require()
-        entity.addAttribute(PersistentKeys.localUpdatedAt.rawValue, .dateAttributeType).require()
+        entity.addAttribute(PersistentKeys.localID.rawValue, .UUIDAttributeType).require().with(default: PersistentObject.defaultUUID)
+        entity.addAttribute(PersistentKeys.localCreatedAt.rawValue, .dateAttributeType).require().with(default: Date(timeIntervalSince1970: 0))
+        entity.addAttribute(PersistentKeys.localUpdatedAt.rawValue, .dateAttributeType).require().with(default: Date(timeIntervalSince1970: 0))
         
         entity.unique(PersistentKeys.localID.rawValue)
         
