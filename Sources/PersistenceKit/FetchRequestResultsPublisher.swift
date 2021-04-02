@@ -1,5 +1,5 @@
 //
-//  FetchResultsPublisher.swift
+//  FetchRequestResultsPublisher.swift
 //  
 //
 //  Created by Maddie Schipper on 3/10/21.
@@ -9,29 +9,26 @@ import Foundation
 import CoreData
 import Combine
 
-public final class FetchResultsPublisher<ResultType : NSFetchRequestResult> : Publisher {
+@available(*, deprecated, message: "Use renamed publisher FetchRequestResultsPublisher")
+public typealias FetchResultsPublisher = FetchRequestResultsPublisher
+
+public final class FetchRequestResultsPublisher<ResultType : NSFetchRequestResult> : Publisher {
     public typealias Output = Array<ResultType>
     public typealias Failure = Error
     
     public let fetchRequest: NSFetchRequest<ResultType>
     public let context: NSManagedObjectContext
-    public let sectionNameKeyPath: String?
-    public let cacheName: String?
     
-    public init(fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext, sectionNameKeyPath: String? = nil, cacheName: String? = nil) {
+    public init(fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext) {
         self.fetchRequest = fetchRequest
         self.context = context
-        self.sectionNameKeyPath = sectionNameKeyPath
-        self.cacheName = cacheName
     }
     
     public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
         let subscription = FetchResultsSubscription(
             subscriber: subscriber,
             fetchRequest: self.fetchRequest,
-            context: self.context,
-            sectionNameKeyPath: self.sectionNameKeyPath,
-            cacheName: self.cacheName
+            context: self.context
         )
         
         subscriber.receive(subscription: subscription)
@@ -49,9 +46,10 @@ fileprivate final class FetchResultsSubscription<ResultType : NSFetchRequestResu
         return self.fetchController.fetchedObjects ?? []
     }
     
-    init(subscriber: S, fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext, sectionNameKeyPath: String?, cacheName: String?) {
+    init(subscriber: S, fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext) {
         self.subscriber = subscriber
-        self.fetchController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: sectionNameKeyPath, cacheName: cacheName)
+        
+        self.fetchController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         
         super.init()
         
@@ -88,7 +86,7 @@ fileprivate final class FetchResultsSubscription<ResultType : NSFetchRequestResu
         self.demand += subscriber.receive(self.fetchedObjects)
     }
     
-    func controllerDidChangeContent(_ controller: NSFetchedResultsController<NSFetchRequestResult>) {
+    func controller(_ controller: NSFetchedResultsController<NSFetchRequestResult>, didChangeContentWith diff: CollectionDifference<NSManagedObjectID>) {
         self.updated()
     }
 }

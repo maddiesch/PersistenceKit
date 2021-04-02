@@ -11,6 +11,7 @@ import Foundation
 import CoreData
 import SwiftUI
 
+@available(*, deprecated, message: "Use FetchedResultsPublisher in your own view instead")
 public struct FetchControllerProviderView<Content: View, ResultType: NSFetchRequestResult> : View {
     public let content: (Array<ResultType>) -> Content
     

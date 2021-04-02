@@ -13,10 +13,14 @@ public typealias PersistentEntityDescription = NSEntityDescription
 open class PersistentObject: NSManagedObject, Identifiable {
     private static let defaultUUID = UUID(uuidString: "05730E76-06D3-4AB9-9E93-BA6B74C9C7F0")!
     
-    public enum PersistentKeys : String {
+    public enum PersistentKeys : String, CustomStringConvertible {
         case localID = "localID"
         case localCreatedAt = "localCreatedAt"
         case localUpdatedAt = "localUpdatedAt"
+        
+        public var description: String {
+            return self.rawValue
+        }
     }
     
     public var id: String {
@@ -103,6 +107,10 @@ public protocol FetchRequestProvider : NSFetchRequestResult {
     static var entityName: String { get }
 }
 
+public protocol SortedFetchRequestProvider : FetchRequestProvider {
+    static var defaultSortDescriptors: [NSSortDescriptor] { get }
+}
+
 extension FetchRequestProvider {
     public static func fetchRequest(configuration: ((NSFetchRequest<Self>) -> Void)? = nil) -> NSFetchRequest<Self> {
         let fetchRequest = NSFetchRequest<Self>(entityName: self.entityName)
@@ -113,8 +121,18 @@ extension FetchRequestProvider {
     }
 }
 
-extension PersistentObject : FetchRequestProvider {
+extension SortedFetchRequestProvider {
+    public static func sortedFetchRequest(configuration: ((NSFetchRequest<Self>) -> Void)? = nil) -> NSFetchRequest<Self> {
+        let fetchRequest = NSFetchRequest<Self>(entityName: self.entityName)
+        fetchRequest.sortDescriptors = self.defaultSortDescriptors
+        
+        configuration?(fetchRequest)
+        
+        return fetchRequest
+    }
 }
+
+extension PersistentObject : FetchRequestProvider {}
 
 extension Set where Element : PersistentObject {
     public mutating func insert(in context: NSManagedObjectContext) -> Element {
@@ -123,5 +141,13 @@ extension Set where Element : PersistentObject {
         self.insert(value)
         
         return value
+    }
+}
+
+extension NSManagedObjectContext {
+    public func findFirstCreating<Object : PersistentObject>(_ fetchRequest: NSFetchRequest<Object>) throws -> Object {
+        precondition(fetchRequest.fetchLimit == 1, "FetchRequest must have a fetchLimit of 1")
+        
+        return try self.fetch(fetchRequest).first ?? Object(context: self)
     }
 }

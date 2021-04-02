@@ -21,8 +21,11 @@ public final class PersistentStore {
         return self.container.viewContext
     }
     
-    public func newBackgroundContext() -> NSManagedObjectContext {
-        return self.container.newBackgroundContext()
+    public func newBackgroundContext(name: String? = nil) -> NSManagedObjectContext {
+        let context = self.container.newBackgroundContext()
+        context.name = name
+        
+        return context
     }
     
     public func newViewEditingContext() -> NSManagedObjectContext {

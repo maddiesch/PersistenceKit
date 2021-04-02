@@ -10,6 +10,7 @@ import SwiftUI
 import CoreData
 import Combine
 
+@available(*, deprecated, message: "Use FetchedResultsPublisher in your own view instead")
 public struct PersistentObjectFetchedView<ObjectType : PersistentObject, Content : View> : View {
     private let publisher: AnyPublisher<Array<ObjectType>, Never>
     private let content: (Array<ObjectType>) -> Content
@@ -18,7 +19,7 @@ public struct PersistentObjectFetchedView<ObjectType : PersistentObject, Content
     
     public init(fetchRequest: NSFetchRequest<ObjectType>, context: NSManagedObjectContext, @ViewBuilder content: @escaping (Array<ObjectType>) -> Content) {
         self.content = content
-        self.publisher = FetchResultsPublisher(fetchRequest: fetchRequest, context: context).replaceError(with: []).eraseToAnyPublisher()
+        self.publisher = FetchRequestResultsPublisher(fetchRequest: fetchRequest, context: context).replaceError(with: []).eraseToAnyPublisher()
     }
     
     public var body: some View {
