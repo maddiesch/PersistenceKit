@@ -17,7 +17,7 @@ public struct PersistentObjectFetchedView<ObjectType : PersistentObject, Content
     
     @State private var results: Array<ObjectType> = []
     
-    public init(fetchRequest: NSFetchRequest<ObjectType>, context: NSManagedObjectContext, @ViewBuilder content: @escaping (Array<ObjectType>) -> Content) {
+    public init(fetchRequest: NSFetchRequest<ObjectType>, context: PersistentContext, @ViewBuilder content: @escaping (Array<ObjectType>) -> Content) {
         self.content = content
         self.publisher = FetchRequestResultsPublisher(fetchRequest: fetchRequest, context: context).replaceError(with: []).eraseToAnyPublisher()
     }

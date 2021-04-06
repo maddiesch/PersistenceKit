@@ -17,9 +17,9 @@ public final class FetchRequestResultsPublisher<ResultType : NSFetchRequestResul
     public typealias Failure = Error
     
     public let fetchRequest: NSFetchRequest<ResultType>
-    public let context: NSManagedObjectContext
+    public let context: PersistentContext
     
-    public init(fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext) {
+    public init(fetchRequest: NSFetchRequest<ResultType>, context: PersistentContext) {
         self.fetchRequest = fetchRequest
         self.context = context
     }
@@ -46,7 +46,7 @@ fileprivate final class FetchResultsSubscription<ResultType : NSFetchRequestResu
         return self.fetchController.fetchedObjects ?? []
     }
     
-    init(subscriber: S, fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext) {
+    init(subscriber: S, fetchRequest: NSFetchRequest<ResultType>, context: PersistentContext) {
         self.subscriber = subscriber
         
         self.fetchController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)

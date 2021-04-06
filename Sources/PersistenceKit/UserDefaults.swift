@@ -17,7 +17,7 @@ extension UserDefaults {
         }
     }
     
-    public func objectID(forKey key: String, inContext context: NSManagedObjectContext?) -> NSManagedObjectID? {
+    public func objectID(forKey key: String, inContext context: PersistentContext?) -> NSManagedObjectID? {
         return self.objectID(forKey: key, forCoordinator: context?.persistentStoreCoordinator)
     }
     

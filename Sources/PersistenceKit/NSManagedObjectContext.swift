@@ -19,7 +19,7 @@ public struct NilContextError : Error, CustomNSError {
     }
 }
 
-extension NSManagedObjectContext {
+extension PersistentContext {
     public typealias ManagedObjectContextChangedObjects = (inserted: Array<NSManagedObjectID>, updated: Array<NSManagedObjectID>, delted: Array<NSManagedObjectID>)
     
     public var objectsDidChangePublisher: AnyPublisher<ManagedObjectContextChangedObjects, Never> {
@@ -50,8 +50,8 @@ extension NSManagedObjectContext {
         }
     }
     
-    public func createChildContext(concurrencyType: NSManagedObjectContextConcurrencyType = .mainQueueConcurrencyType) -> NSManagedObjectContext {
-        let context = NSManagedObjectContext(concurrencyType: concurrencyType)
+    public func createChildContext(concurrencyType: NSManagedObjectContextConcurrencyType = .mainQueueConcurrencyType) -> PersistentContext {
+        let context = PersistentContext(concurrencyType: concurrencyType)
         context.parent = self
         context.automaticallyMergesChangesFromParent = true
         context.mergePolicy = NSMergeByPropertyObjectTrumpMergePolicy
@@ -59,7 +59,7 @@ extension NSManagedObjectContext {
         return context
     }
     
-    public func performWithErrorHandler(task: @escaping (NSManagedObjectContext) throws -> Void) -> Future<Error?, Never> {
+    public func performWithErrorHandler(task: @escaping (PersistentContext) throws -> Void) -> Future<Error?, Never> {
         return Future { finished in
             self.perform { [weak self] in
                 guard let sSelf = self else {
@@ -78,7 +78,7 @@ extension NSManagedObjectContext {
         }
     }
     
-    public func perform<ResultType>(task: @escaping (NSManagedObjectContext) throws -> ResultType) -> Future<ResultType, Error> {
+    public func perform<ResultType>(task: @escaping (PersistentContext) throws -> ResultType) -> Future<ResultType, Error> {
         return Future { finished in
             self.perform { [weak self] in
                 do {
@@ -96,18 +96,30 @@ extension NSManagedObjectContext {
         }
     }
     
-    public var contextChangedPublisher: AnyPublisher<NSManagedObjectContext, Never> {
+    public var contextChangedPublisher: AnyPublisher<PersistentContext, Never> {
         return NotificationCenter.default.publisher(for: .NSManagedObjectContextObjectsDidChange, object: self).filter { notification in
-            guard let context = notification.object as? NSManagedObjectContext else {
+            guard let context = notification.object as? PersistentContext else {
                 return false
             }
             return context.hasChanges
         }.compactMap {
-            return $0.object as? NSManagedObjectContext
+            return $0.object as? PersistentContext
         }.eraseToAnyPublisher()
     }
     
-    public func createChangePublisher<S : Scheduler>(timeInterval: S.SchedulerTimeType.Stride, scheduler: S) -> AnyPublisher<NSManagedObjectContext, Never> {
+    public func createChangePublisher<S : Scheduler>(timeInterval: S.SchedulerTimeType.Stride, scheduler: S) -> AnyPublisher<PersistentContext, Never> {
         return self.contextChangedPublisher.throttle(for: timeInterval, scheduler: scheduler, latest: true).eraseToAnyPublisher()
+    }
+}
+
+extension PersistentContext {
+    @discardableResult
+    public func delete(objectsWithIDs objectIDs: Set<PersistentObjectID>) throws -> Int {
+        let batchDelete = NSBatchDeleteRequest(objectIDs: objectIDs.map { $0 })
+        batchDelete.resultType = .resultTypeCount
+        
+        let deleteResult = try self.execute(batchDelete) as? NSBatchDeleteResult
+        
+        return deleteResult?.result as? Int ?? -1
     }
 }

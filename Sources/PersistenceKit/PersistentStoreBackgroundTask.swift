@@ -6,11 +6,10 @@
 //
 
 import Foundation
-import CoreData
 import Combine
 
 extension PersistentStore {
-    public func performInBackgroundContext<ResultType>(task: @escaping (NSManagedObjectContext) throws -> ResultType) -> AnyPublisher<ResultType, Error> {
+    public func performInBackgroundContext<ResultType>(task: @escaping (PersistentContext) throws -> ResultType) -> AnyPublisher<ResultType, Error> {
         let context = self.newBackgroundContext()
         
         return context.perform(task: task).receive(on: backgroundTaskReceiverQueue).eraseToAnyPublisher()
@@ -18,7 +17,7 @@ extension PersistentStore {
 }
 
 extension Publisher {
-    public func inBackgroundContext<Result>(for store: PersistentStore, block: @escaping (NSManagedObjectContext, Self.Output) throws -> Result) -> AnyPublisher<Result, Error> where Self.Failure == Error {
+    public func inBackgroundContext<Result>(for store: PersistentStore, block: @escaping (PersistentContext, Self.Output) throws -> Result) -> AnyPublisher<Result, Error> where Self.Failure == Error {
         return Publishers.FlatMap(upstream: self, maxPublishers: .unlimited) { output -> AnyPublisher<Result, Error> in
             return store.performInBackgroundContext { (context) -> Result in
                 return try block(context, output)
@@ -26,7 +25,7 @@ extension Publisher {
         }.eraseToAnyPublisher()
     }
     
-    public func inContext<Result>(for context: NSManagedObjectContext, block: @escaping (NSManagedObjectContext, Self.Output) throws -> Result) -> AnyPublisher<Result, Error> where Self.Failure == Error {
+    public func inContext<Result>(for context: PersistentContext, block: @escaping (PersistentContext, Self.Output) throws -> Result) -> AnyPublisher<Result, Error> where Self.Failure == Error {
         return self.flatMap { output -> Future<Result, Error> in
             return context.perform { (context) -> Result in
                 return try block(context, output)

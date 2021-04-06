@@ -10,7 +10,7 @@ import CoreData
 import Combine
 
 open class PersistentObjectViewModel<Object : PersistentObject> : ObservableObject {
-    public let managedObjectContext: NSManagedObjectContext!
+    public let managedObjectContext: PersistentContext!
     
     private var objectObserverCanceler: AnyCancellable?
     
@@ -44,10 +44,10 @@ open class PersistentObjectViewModel<Object : PersistentObject> : ObservableObje
     }
 }
 
-open class PersistentObjectContextViewModel<Object : PersistentObject> : PersistentObjectViewModel<Object> {    
+open class PersistentObjectContextViewModel<Object : PersistentObject> : PersistentObjectViewModel<Object> {
     private var contextObservers = Set<AnyCancellable>()
     
-    public func beginTrackingChanges(forContext context: NSManagedObjectContext) {
+    public func beginTrackingChanges(forContext context: PersistentContext) {
         context.publisher(for: \.hasChanges).sink { [weak self] _ in
             self?.objectWillChange.send()
         }.store(in: &contextObservers)

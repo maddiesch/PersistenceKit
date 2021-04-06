@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
-import CoreData
 
 public struct ManagedObjectContextProvidingView<Content : View> : View {
     @Environment(\.managedObjectContext) var managedObjectContext
     
-    let content: (NSManagedObjectContext) -> Content
+    let content: (PersistentContext) -> Content
     
-    public init(@ViewBuilder content: @escaping (NSManagedObjectContext) -> Content) {
+    public init(@ViewBuilder content: @escaping (PersistentContext) -> Content) {
         self.content = content
     }
     

@@ -17,26 +17,26 @@ public final class PersistentStore {
     
     internal let container: NSPersistentContainer
     
-    public var viewContext: NSManagedObjectContext {
+    public var viewContext: PersistentContext {
         return self.container.viewContext
     }
     
-    public func newBackgroundContext(name: String? = nil) -> NSManagedObjectContext {
+    public func newBackgroundContext(name: String? = nil) -> PersistentContext {
         let context = self.container.newBackgroundContext()
         context.name = name
         
         return context
     }
     
-    public func newViewEditingContext() -> NSManagedObjectContext {
+    public func newViewEditingContext() -> PersistentContext {
         return self.viewContext.createChildContext(concurrencyType: .mainQueueConcurrencyType)
     }
     
-    public convenience init(name: String, managedObjectModel model: NSManagedObjectModel) {
+    public convenience init(name: String, managedObjectModel model: PersistentModel) {
         self.init(containerType: NSPersistentContainer.self, name: name, managedObjectModel: model)
     }
     
-    public required init<Container : NSPersistentContainer>(containerType: Container.Type, name: String, managedObjectModel model: NSManagedObjectModel) {
+    public required init<Container : NSPersistentContainer>(containerType: Container.Type, name: String, managedObjectModel model: PersistentModel) {
         self.container = containerType.init(name: name, managedObjectModel: model)
     }
     
@@ -95,7 +95,7 @@ public final class PersistentStore {
     private var autoSaveObservers = Set<AnyCancellable>()
     
     @discardableResult
-    public func beginContextAutoSave(for context: NSManagedObjectContext, timeInterval: RunLoop.SchedulerTimeType.Stride) -> AnyPublisher<Error, Never> {
+    public func beginContextAutoSave(for context: PersistentContext, timeInterval: RunLoop.SchedulerTimeType.Stride) -> AnyPublisher<Error, Never> {
         let publisher = PassthroughSubject<Error, Never>()
         let contextName = context.name ?? "<anonymous>"
         

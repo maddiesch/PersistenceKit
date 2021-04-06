@@ -17,7 +17,7 @@ public struct FetchControllerProviderView<Content: View, ResultType: NSFetchRequ
     
     private let viewModel: _FetchControllerProviderModel<ResultType>
     
-    public init(fetchRequest: NSFetchRequest<ResultType>, managedObjectContext context: NSManagedObjectContext, @ViewBuilder content: @escaping (Array<ResultType>) -> Content) {
+    public init(fetchRequest: NSFetchRequest<ResultType>, managedObjectContext context: PersistentContext, @ViewBuilder content: @escaping (Array<ResultType>) -> Content) {
         precondition(fetchRequest.sortDescriptors?.count ?? 0 == 0, "Must provide a fetchRequest with at least one sort descriptor")
         
         self.content = content
@@ -53,7 +53,7 @@ fileprivate class _FetchControllerProviderModel<ResultType: NSFetchRequestResult
         return fetchResultsController.fetchedObjects ?? []
     }
     
-    init(fetchRequest: NSFetchRequest<ResultType>, context: NSManagedObjectContext) {
+    init(fetchRequest: NSFetchRequest<ResultType>, context: PersistentContext) {
         self.fetchResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
         
         super.init()

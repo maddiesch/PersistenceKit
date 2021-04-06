@@ -8,8 +8,6 @@
 import Foundation
 import CoreData
 
-public typealias PersistentEntityDescription = NSEntityDescription
-
 open class PersistentObject: NSManagedObject, Identifiable {
     private static let defaultUUID = UUID(uuidString: "05730E76-06D3-4AB9-9E93-BA6B74C9C7F0")!
     
@@ -21,6 +19,14 @@ open class PersistentObject: NSManagedObject, Identifiable {
         public var description: String {
             return self.rawValue
         }
+    }
+    
+    public final class func createdAtSortDescriptor(ascending: Bool = false) -> NSSortDescriptor {
+        return NSSortDescriptor(key: PersistentKeys.localCreatedAt.rawValue, ascending: ascending)
+    }
+    
+    public final class func updatedAtSortDescriptor(ascending: Bool = false) -> NSSortDescriptor {
+        return NSSortDescriptor(key: PersistentKeys.localUpdatedAt.rawValue, ascending: ascending)
     }
     
     public var id: String {
@@ -95,7 +101,7 @@ extension PersistentObject {
         case objectNotFound(NSManagedObjectID)
     }
     
-    public final class func existing(objectWithID objectID: NSManagedObjectID, inContext context: NSManagedObjectContext) throws -> Self {
+    public final class func existing(objectWithID objectID: NSManagedObjectID, inContext context: PersistentContext) throws -> Self {
         guard let object = try context.existingObject(with: objectID) as? Self else {
             throw QueryError.objectNotFound(objectID)
         }
@@ -112,12 +118,17 @@ public protocol SortedFetchRequestProvider : FetchRequestProvider {
 }
 
 extension FetchRequestProvider {
-    public static func fetchRequest(configuration: ((NSFetchRequest<Self>) -> Void)? = nil) -> NSFetchRequest<Self> {
+    public static func createFetchRequest(withConfiguration configuration: ((NSFetchRequest<Self>) -> Void)? = nil) -> NSFetchRequest<Self> {
         let fetchRequest = NSFetchRequest<Self>(entityName: self.entityName)
         
         configuration?(fetchRequest)
         
         return fetchRequest
+    }
+    
+    @available(*, deprecated, renamed: "createFetchRequest(withConfiguration:)")
+    public static func fetchRequest(configuration: ((NSFetchRequest<Self>) -> Void)? = nil) -> NSFetchRequest<Self> {
+        return self.createFetchRequest(withConfiguration: configuration)
     }
 }
 
@@ -135,7 +146,7 @@ extension SortedFetchRequestProvider {
 extension PersistentObject : FetchRequestProvider {}
 
 extension Set where Element : PersistentObject {
-    public mutating func insert(in context: NSManagedObjectContext) -> Element {
+    public mutating func insert(in context: PersistentContext) -> Element {
         let value = Element(context: context)
         
         self.insert(value)
@@ -144,7 +155,7 @@ extension Set where Element : PersistentObject {
     }
 }
 
-extension NSManagedObjectContext {
+extension PersistentContext {
     public func findFirstCreating<Object : PersistentObject>(_ fetchRequest: NSFetchRequest<Object>) throws -> Object {
         precondition(fetchRequest.fetchLimit == 1, "FetchRequest must have a fetchLimit of 1")
         
