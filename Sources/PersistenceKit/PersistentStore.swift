@@ -32,6 +32,10 @@ public final class PersistentStore {
         return self.viewContext.createChildContext(concurrencyType: .mainQueueConcurrencyType)
     }
     
+    public var managedObjectModel: NSManagedObjectModel {
+        return self.container.managedObjectModel
+    }
+    
     public convenience init(name: String, managedObjectModel model: PersistentModel) {
         self.init(containerType: NSPersistentContainer.self, name: name, managedObjectModel: model)
     }
