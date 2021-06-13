@@ -32,7 +32,7 @@ public final class PersistentStore {
         return self.viewContext.createChildContext(concurrencyType: .mainQueueConcurrencyType)
     }
     
-    public var managedObjectModel: NSManagedObjectModel {
+    public var managedObjectModel: PersistentModel {
         return self.container.managedObjectModel
     }
     
@@ -42,6 +42,10 @@ public final class PersistentStore {
     
     public required init<Container : NSPersistentContainer>(containerType: Container.Type, name: String, managedObjectModel model: PersistentModel) {
         self.container = containerType.init(name: name, managedObjectModel: model)
+    }
+    
+    public var persistentStoreDescriptions: Array<NSPersistentStoreDescription> {
+        return self.container.persistentStoreDescriptions
     }
     
     public func prepare(withPersistentStoreDescriptions descriptions: Array<NSPersistentStoreDescription>) {

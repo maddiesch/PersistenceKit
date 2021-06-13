@@ -10,10 +10,16 @@ import CoreData
 
 extension NSManagedObjectModel {
     @discardableResult
-    public func register(persitentObjectClass klass: PersistentObject.Type) -> NSEntityDescription {
+    public func register(persitentObjectClass klass: PersistentObject.Type, forConfiguration configurationName: String? = nil) -> NSEntityDescription {
         let entity = klass.createEntityDescription()
         
         self.entities.append(entity)
+        
+        if let configurationName = configurationName {
+            var entities = self.entities(forConfigurationName: configurationName) ?? []
+            entities.append(entity)
+            self.setEntities(entities, forConfigurationName: configurationName)
+        }
         
         return entity
     }
