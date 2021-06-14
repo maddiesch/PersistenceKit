@@ -68,9 +68,10 @@ public struct Entity : Resource {
     /// - Parameters:
     ///   - name: The name of the entity
     ///   - builder: The block what handles building the entity attributes
-    public init(name: String, @ModelBuilder builder: () -> NSEntityDescription) {
+    public init(name: String, managedObjectModelClass: NSManagedObject.Type? = nil, @ModelBuilder builder: () -> NSEntityDescription) {
         let entity = builder()
         entity.name = name
+        entity.managedObjectClassName = NSStringFromClass(managedObjectModelClass ?? NSManagedObject.self)
         
         self.init(entity: entity, configurations: [])
     }
@@ -170,6 +171,12 @@ public struct Attribute : Resource {
         
         attribute.setValidationPredicates(predicates, withValidationWarnings: messages)
         
+        return Attribute(attribute: attribute)
+    }
+
+    public func allowsExternalBinaryDataStorage(isAllowed: Bool = true) -> Attribute {
+        let attribute = self.attribute
+        attribute.allowsExternalBinaryDataStorage = isAllowed
         return Attribute(attribute: attribute)
     }
 }
