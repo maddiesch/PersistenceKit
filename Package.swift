@@ -1,4 +1,4 @@
-// swift-tools-version:5.3
+// swift-tools-version:5.4
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -12,10 +12,13 @@ let package = Package(
     ],
     products: [
         .library(name: "PersistenceKit", targets: ["PersistenceKit"]),
+        .library(name: "ModelBuilder", targets: ["ModelBuilder"])
     ],
     dependencies: [],
     targets: [
         .target(name: "PersistenceKit", dependencies: []),
+        .target(name: "ModelBuilder", dependencies: []),
         .testTarget(name: "PersistenceKitTests", dependencies: ["PersistenceKit"]),
+        .testTarget(name: "ModelBuilderTests", dependencies: ["ModelBuilder"]),
     ]
 )
