@@ -12,10 +12,13 @@ let package = Package(
     ],
     products: [
         .library(name: "PersistenceKit", targets: ["PersistenceKit"]),
+        .library(name: "ModelBuilder", targets: ["ModelBuilder"])
     ],
     dependencies: [],
     targets: [
         .target(name: "PersistenceKit", dependencies: []),
+        .target(name: "ModelBuilder", dependencies: []),
         .testTarget(name: "PersistenceKitTests", dependencies: ["PersistenceKit"]),
+        .testTarget(name: "ModelBuilderTests", dependencies: ["ModelBuilder"]),
     ]
 )
